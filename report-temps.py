@@ -163,6 +163,7 @@ def make_period_graph(period):
 
 @app.route("/history/<sensor>/<period>")
 def make_period_graph_sensor(sensor, period):
+    # sensor can be a csv list of sensor names
     return make_period_graph_int(period, sensor)
 
 
