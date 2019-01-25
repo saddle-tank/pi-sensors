@@ -100,7 +100,7 @@ def get_last_updated(sensor_name):
     return ret
 
 
-def make_multi_graph(period, sensor_names):
+def make_multi_graph(period, sensor_names, title):
     # save as a gif so that they can be found and deleted
     # without affecting the png images the individual sensors draw
     file_name = str(uuid.uuid4()) + ".gif"
@@ -113,7 +113,7 @@ def make_multi_graph(period, sensor_names):
     graph_def_params = [
         root_folder + "/static/" + file_name,
         "-t",
-        "All Sensors for the last " + str(period)[1:],
+        str(title) + " for the last " + str(period)[1:],
         "--start",
         str(period),
         "-w 600"]
@@ -158,6 +158,15 @@ def make_image_html(sensor_name):
 
 @app.route("/history/<period>")
 def make_period_graph(period):
+    return make_period_graph_int(period, 'all')
+
+
+@app.route("/history/<sensor>/<period>")
+def make_period_graph_sensor(sensor, period):
+    return make_period_graph_int(period, sensor)
+
+
+def make_period_graph_int(period, sensor_to_plot):
 
     gifs = glob.glob('static/*.gif')
     for f in gifs:
@@ -165,6 +174,8 @@ def make_period_graph(period):
 
     if period[0:1] != '-':
         period = '-' + period
+
+    sensor_to_plot = sensor_to_plot + ","
 
     # get sensors from all the servers
     cxerror = ''
@@ -176,9 +187,11 @@ def make_period_graph(period):
             cxerror = cxerror + '<p style="color:red">Unable to connect to: %s</p>' % server['name']
         else:
             for sensor in sensor_list:
-                all_sensor_names.append(sensor['name'])
+                sensor_name = str(sensor['name']).lower() + ","
+                if sensor_to_plot == 'all,' or str(sensor_to_plot).lower().find(sensor_name) != -1:
+                    all_sensor_names.append(sensor['name'])
 
-    image_file_name = make_multi_graph(period, all_sensor_names)
+    image_file_name = make_multi_graph(period, all_sensor_names, sensor_to_plot)
 
     r = '<!DOCTYPE html>'
     r = r + '<html lang="en-US">'
@@ -186,7 +199,7 @@ def make_period_graph(period):
     r = r + '<title>Temperatures Over Period</title>'
     r = r + '</head>'
     r = r + '<body>'
-    r = r + '<p>Temperatures from all sensors for the last ' + period[1:] + ' until now</p>'
+    r = r + '<p>Temperatures from ' + sensor_to_plot + ' for the last ' + period[1:] + ' until now</p>'
     r = r + cxerror
     r = r + ' <img src="/static/' + image_file_name + '" alt="Last' + period[1:] + '" >'
     r = r + '</body>'
