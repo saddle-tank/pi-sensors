@@ -156,12 +156,12 @@ def make_image_html(sensor_name):
     return ' <img src="static/' + img_name + '" alt="' + name + '" >'
 
 
-@app.route("/history/<period>")
-def make_period_graph(period):
-    return make_period_graph_int(period, 'all')
+@app.route("/<sensor>")
+def make_period_graph(sensor):
+    return make_period_graph_int("-2 weeks", sensor)
 
 
-@app.route("/history/<sensor>/<period>")
+@app.route("/<sensor>/<period>")
 def make_period_graph_sensor(sensor, period):
     # sensor can be a csv list of sensor names
     return make_period_graph_int(period, sensor)
